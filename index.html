@@ -137,7 +137,7 @@ button.ghost {
 
 /* table */
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; color: var(--text-muted); font-weight: 500; padding: 6px 4px; border-bottom: 1px solid var(--grid); }
+th { text-align: left; color: var(--text-muted); font-weight: 500; padding: 6px 4px; border-bottom: 1px solid var(--grid); white-space: nowrap; }
 td { padding: 7px 4px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
 td.num { text-align: right; }
 th.num { text-align: right; }
@@ -171,17 +171,17 @@ details table td, details table th { font-variant-numeric: normal; }
     <div class="delta" id="tWeightDelta"></div>
   </div>
   <div class="tile">
-    <div class="label">목표(72.0kg)까지</div>
+    <div class="label" id="lblGoal">목표까지</div>
     <div class="value" id="tRemain">–</div>
     <div class="delta" id="tRemainSub"></div>
   </div>
   <div class="tile">
-    <div class="label">오늘 칼로리 (목표 2,100)</div>
+    <div class="label" id="lblKcal">오늘 칼로리</div>
     <div class="value" id="tKcal">–</div>
     <div class="meter"><i id="mKcal" style="width:0%"></i></div>
   </div>
   <div class="tile">
-    <div class="label">오늘 단백질 (목표 160g)</div>
+    <div class="label" id="lblProtein">오늘 단백질</div>
     <div class="value" id="tProtein">–</div>
     <div class="meter"><i id="mProtein" style="width:0%"></i></div>
   </div>
@@ -189,11 +189,37 @@ details table td, details table th { font-variant-numeric: normal; }
 
 <!-- 체중 차트 -->
 <div class="card">
-  <h2>체중 추이 — 커팅 목표 72.0kg</h2>
+  <h2 id="chartTitle">체중 추이</h2>
   <div class="chart-box" id="chartBox">
     <div class="chart-empty" id="chartEmpty">체중을 2일 이상 기록하면 그래프가 나타납니다</div>
     <div class="tooltip" id="tooltip"></div>
   </div>
+</div>
+
+<!-- 오늘의 운동 추천 -->
+<div class="card">
+  <h2 id="workoutTitle">오늘의 운동</h2>
+  <table>
+    <thead><tr><th>운동</th><th class="num">세트×횟수</th></tr></thead>
+    <tbody id="workoutBody"></tbody>
+  </table>
+  <div class="note" id="workoutCardio"></div>
+  <details>
+    <summary>이번 주 전체 스케줄</summary>
+    <div id="weekPlan"></div>
+  </details>
+</div>
+
+<!-- 오늘의 식단 추천 -->
+<div class="card">
+  <h2 id="mealTitle">오늘의 식단</h2>
+  <table>
+    <thead><tr><th>끼니</th><th>메뉴</th><th class="num">kcal</th><th class="num">단백질</th></tr></thead>
+    <tbody id="mealBody"></tbody>
+  </table>
+  <div class="note" id="mealTotal"></div>
+  <div class="io-row"><button class="ghost" id="mealCycle">다른 조합 보기 ↻</button></div>
+  <div class="note">물 2L 이상 · 휴가 전까지 술 0잔 · 치팅밀은 주 1회 점심으로</div>
 </div>
 
 <!-- 오늘 기록 -->
@@ -239,40 +265,6 @@ details table td, details table th { font-variant-numeric: normal; }
   </div>
 </div>
 
-<!-- 루틴 참고 -->
-<div class="card">
-  <h2>루틴 참고 (주 4회 · 상하체 2분할)</h2>
-  <details>
-    <summary>DAY 1 · 3 — 상체</summary>
-    <table>
-      <thead><tr><th>운동</th><th>세트×횟수</th></tr></thead>
-      <tbody>
-        <tr><td>인클라인 벤치프레스</td><td>4×8~10</td></tr>
-        <tr><td>오버헤드 프레스</td><td>4×8~10</td></tr>
-        <tr><td>랫풀다운 / 턱걸이</td><td>4×8~12</td></tr>
-        <tr><td>사이드 레터럴 레이즈</td><td>4×12~15</td></tr>
-        <tr><td>케이블 크로스오버</td><td>3×12~15</td></tr>
-        <tr><td>페이스풀</td><td>3×15</td></tr>
-      </tbody>
-    </table>
-  </details>
-  <details>
-    <summary>DAY 2 · 4 — 하체 + 코어</summary>
-    <table>
-      <thead><tr><th>운동</th><th>세트×횟수</th></tr></thead>
-      <tbody>
-        <tr><td>스쿼트</td><td>4×8~10</td></tr>
-        <tr><td>루마니안 데드리프트</td><td>4×8~10</td></tr>
-        <tr><td>레그프레스</td><td>3×10~12</td></tr>
-        <tr><td>레그컬</td><td>3×12</td></tr>
-        <tr><td>행잉 레그레이즈</td><td>3×12~15</td></tr>
-        <tr><td>플랭크</td><td>3×60초</td></tr>
-      </tbody>
-    </table>
-  </details>
-  <div class="note">웨이트 후 경사 걷기(경사 8~10, 속도 5.5~6) 30~40분 × 주 4회</div>
-</div>
-
 <!-- 체크리스트 -->
 <div class="card">
   <h2>체크리스트</h2>
@@ -284,23 +276,73 @@ details table td, details table th { font-variant-numeric: normal; }
 <script>
 "use strict";
 
-const GOAL_WEIGHT = 72.0;
-const START_WEIGHT = 77.0;
-const KCAL_TARGET = 2100;
-const PROTEIN_TARGET = 160;
-const PHASE_END = "2026-10-15";
+// 날짜에 따라 자동 전환되는 단계 설정
+const PHASES = [
+  { name: "여름휴가 미니컷 🔥", until: "2026-08-01", goal: 74.0, startRef: 77.0, kcal: 1800, protein: 170, cut: true },
+  { name: "여름휴가 🏖️ (유지)",  until: "2026-08-09", goal: 74.0, startRef: 74.0, kcal: 2400, protein: 150, cut: true },
+  { name: "린매스업 💪",         until: "2027-04-30", goal: 80.0, startRef: 74.0, kcal: 2700, protein: 170, cut: false }
+];
+function currentPhase() {
+  const t = todayStr();
+  return PHASES.find(p => t <= p.until) || PHASES[PHASES.length - 1];
+}
 const LS_ENTRIES = "bp_entries_v1";
 const LS_CHECKS = "bp_checks_v1";
 
 const CHECK_ITEMS = [
   "헬스장 등록 + 인바디 측정 (시작점 기록)",
-  "눈바디 사진 촬영 (정면/측면/후면 — 매달 같은 조건)",
+  "눈바디 사진 촬영 (정면/측면 — 매주 같은 조건)",
   "단백질 보충제 구비",
-  "(선택) 유방외과 초음파 검사",
-  "매주 같은 요일 아침 공복 체중 측정 습관",
-  "3~3.5개월 차: 커팅 종료(71~72kg) → 여유증 판별 → 벌크업 전환",
-  "11개월 차: 최종 커팅 시작",
-  "12~13개월 차: 바프 스튜디오 예약 (촬영 4~6주 전)"
+  "7월 한 달 술 0잔 유지",
+  "7/15 중간 점검: 체중 75.5kg 근처인지 확인 (아니면 -100kcal)",
+  "7/29~31: 나트륨·밀가루 줄여서 붓기 빼기 (물은 충분히)",
+  "8/1 여름휴가 — 유지 칼로리(2,400)로 전환, 즐기기",
+  "8/10~: 린매스업 시작 (2,700kcal, 월 +0.5~1kg)",
+  "(선택) 유방외과 초음파 검사 — 커팅 후에도 유두 아래 단단하면 필수"
+];
+
+// 요일별 운동 추천 (0=일 ~ 6=토) — 미니컷: 주 6회 + 매일 1만보
+const WEEK_PLAN = [
+  { name: "일 — 완전 휴식", cardio: "가볍게 걷기 1만보 + 폼롤러 스트레칭 15분", items: [] },
+  { name: "월 — 상체 A (가슴·어깨)", cardio: "웨이트 후 경사 걷기 30~40분 (경사 8~10, 속도 5.5~6)", items: [
+    ["인클라인 벤치프레스", "4×8~10"], ["오버헤드 프레스", "4×8~10"], ["케이블 크로스오버 (하이→로우)", "3×12~15"],
+    ["사이드 레터럴 레이즈", "4×12~15"], ["페이스풀", "3×15"] ] },
+  { name: "화 — 하체 A + 코어", cardio: "웨이트 후 사이클 HIIT 15분 (30초 전력 / 90초 회복 ×7)", items: [
+    ["스쿼트", "4×8~10"], ["레그프레스", "3×10~12"], ["레그컬", "3×12"],
+    ["행잉 레그레이즈", "3×12~15"], ["플랭크", "3×60초"] ] },
+  { name: "수 — 등·팔", cardio: "웨이트 후 경사 걷기 30~40분", items: [
+    ["턱걸이 / 랫풀다운", "4×8~12"], ["바벨 로우", "4×8~10"], ["시티드 케이블 로우", "3×10~12"],
+    ["이지바 컬", "3×10~12"], ["케이블 푸시다운", "3×10~12"] ] },
+  { name: "목 — 액티브 휴식 (유산소+코어)", cardio: "경사 걷기 40분", items: [
+    ["행잉 레그레이즈", "3×15"], ["케이블 크런치", "3×15"], ["사이드 플랭크", "좌우 3×40초"] ] },
+  { name: "금 — 상체 B (어깨·가슴 상부)", cardio: "웨이트 후 경사 걷기 30분", items: [
+    ["오버헤드 프레스", "4×6~8"], ["인클라인 덤벨프레스", "4×10"], ["사이드 레터럴 레이즈", "5×15"],
+    ["리어델트 플라이", "3×15"], ["딥스", "3×최대"] ] },
+  { name: "토 — 하체 B + 코어", cardio: "웨이트 후 사이클 HIIT 15분", items: [
+    ["루마니안 데드리프트", "4×8~10"], ["런지", "3×12 (다리당)"], ["레그 익스텐션", "3×15"],
+    ["카프 레이즈", "4×15"], ["케이블 크런치", "3×15"] ] }
+];
+
+// 식단 템플릿 3종 — 미니컷 기준 약 1,800kcal / 단백질 165~175g
+const MEAL_PLANS = [
+  { name: "A · 기본 클린", meals: [
+    ["아침", "계란 3개 스크램블 + 오트밀 40g + 블루베리 한 줌", 450, 32],
+    ["점심", "닭가슴살 200g + 현미밥 130g + 쌈채소·김치", 560, 55],
+    ["간식", "프로틴 쉐이크 1스쿱 + 아몬드 10알", 250, 28],
+    ["저녁", "연어(또는 고등어) 150g + 고구마 150g + 샐러드", 480, 38],
+    ["취침 전", "무가당 그릭요거트 100g", 90, 15] ] },
+  { name: "B · 소고기 데이", meals: [
+    ["아침", "그릭요거트 150g + 프로틴 ½스쿱 + 오트밀 30g", 420, 38],
+    ["점심", "소고기 우둔살 180g 구이 + 잡곡밥 130g + 나물", 600, 50],
+    ["간식", "닭가슴살 소시지 2개", 200, 28],
+    ["저녁", "두부 ½모 + 계란 2개 + 참치캔 샐러드볼", 480, 45],
+    ["취침 전", "저지방 우유 200ml", 100, 8] ] },
+  { name: "C · 바쁜 날 (사먹기)", meals: [
+    ["아침", "편의점 삶은계란 2개 + 프로틴 음료 + 바나나", 350, 30],
+    ["점심", "서브웨이 로스트치킨 15cm (위트·머스타드) 또는 닭가슴살 샐러드볼", 600, 45],
+    ["간식", "프로틴 쉐이크 1스쿱 + 견과 한 줌", 250, 28],
+    ["저녁", "닭가슴살 도시락 또는 회덮밥(밥 절반)", 550, 50],
+    ["취침 전", "스트링치즈 1개", 60, 7] ] }
 ];
 
 // ---------- storage ----------
@@ -335,17 +377,23 @@ function weightSeries() {
 
 // ---------- header / tiles ----------
 function renderHeader() {
-  const days = Math.max(0, Math.ceil((new Date(PHASE_END) - new Date(todayStr())) / 86400000));
+  const ph = currentPhase();
+  const days = Math.max(0, Math.ceil((new Date(ph.until) - new Date(todayStr())) / 86400000));
   $("phaseLine").innerHTML = "";
   const b = document.createElement("b");
-  b.textContent = "1단계 커팅";
-  $("phaseLine").append(b, ` · 목표 ${GOAL_WEIGHT.toFixed(1)}kg · 종료까지 D-${days}`);
+  b.textContent = ph.name;
+  $("phaseLine").append(b, ` · 목표 ${ph.goal.toFixed(1)}kg · ${ph.until.slice(5).replace("-", "/")}까지 D-${days}`);
 }
 
 function renderTiles() {
+  const ph = currentPhase();
   const ws = weightSeries();
   const t = todayStr();
   const latest = ws[ws.length - 1];
+
+  $("lblGoal").textContent = `목표(${ph.goal.toFixed(1)}kg)까지`;
+  $("lblKcal").textContent = `오늘 칼로리 (목표 ${ph.kcal.toLocaleString()})`;
+  $("lblProtein").textContent = `오늘 단백질 (목표 ${ph.protein}g)`;
 
   if (latest) {
     $("tWeight").innerHTML = "";
@@ -356,13 +404,16 @@ function renderTiles() {
     const el = $("tWeightDelta");
     if (prev.date !== latest.date) {
       el.textContent = (d > 0 ? "+" : "") + d.toFixed(1) + "kg vs " + fmtDateShort(prev.date);
-      el.className = "delta " + (d < 0 ? "good" : d > 0 ? "bad" : "");
+      // 커팅 중엔 감량이 good, 벌크업 중엔 증량이 good
+      const good = ph.cut ? d < 0 : d > 0;
+      el.className = "delta " + (d === 0 ? "" : good ? "good" : "bad");
     } else el.textContent = "";
-    const remain = latest.weight - GOAL_WEIGHT;
+    const remain = ph.cut ? latest.weight - ph.goal : ph.goal - latest.weight;
     $("tRemain").innerHTML = "";
     $("tRemain").append(Math.max(0, remain).toFixed(1), Object.assign(document.createElement("small"), { textContent: " kg" }));
-    const total = START_WEIGHT - GOAL_WEIGHT;
-    const done = Math.min(100, Math.max(0, ((START_WEIGHT - latest.weight) / total) * 100));
+    const total = Math.abs(ph.startRef - ph.goal);
+    const moved = ph.cut ? ph.startRef - latest.weight : latest.weight - ph.startRef;
+    const done = total ? Math.min(100, Math.max(0, (moved / total) * 100)) : 0;
     $("tRemainSub").textContent = remain <= 0 ? "목표 달성! 🎉" : `진행률 ${done.toFixed(0)}%`;
     $("tRemainSub").className = "delta" + (remain <= 0 ? " good" : "");
   } else {
@@ -371,9 +422,72 @@ function renderTiles() {
   }
 
   const today = entries[t] || {};
-  renderMeter("tKcal", "mKcal", today.kcal, KCAL_TARGET, "kcal", true);
-  renderMeter("tProtein", "mProtein", today.protein, PROTEIN_TARGET, "g", false);
+  renderMeter("tKcal", "mKcal", today.kcal, ph.kcal, "kcal", ph.cut);
+  renderMeter("tProtein", "mProtein", today.protein, ph.protein, "g", false);
 }
+
+// ---------- 오늘의 운동 / 식단 ----------
+function renderWorkout() {
+  const day = new Date().getDay();
+  const plan = WEEK_PLAN[day];
+  $("workoutTitle").textContent = "오늘의 운동 — " + plan.name;
+  const tbody = $("workoutBody");
+  tbody.innerHTML = "";
+  if (plan.items.length === 0) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 2; td.textContent = "웨이트 없음 — 회복에 집중";
+    td.style.color = "var(--text-muted)";
+    tr.append(td); tbody.append(tr);
+  }
+  for (const [ex, sets] of plan.items) {
+    const tr = document.createElement("tr");
+    const td1 = document.createElement("td"); td1.textContent = ex;
+    const td2 = document.createElement("td"); td2.className = "num"; td2.textContent = sets;
+    tr.append(td1, td2); tbody.append(tr);
+  }
+  $("workoutCardio").textContent = "유산소: " + plan.cardio + " · 매일 1만보";
+  const wp = $("weekPlan");
+  wp.innerHTML = "";
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  for (const i of order) {
+    const row = document.createElement("div");
+    row.style.cssText = "font-size:13px;padding:4px 0;border-bottom:1px solid var(--grid)";
+    row.textContent = WEEK_PLAN[i].name;
+    if (i === day) { row.style.fontWeight = "600"; row.textContent += "  ← 오늘"; }
+    wp.append(row);
+  }
+}
+
+function dayOfYear() {
+  const now = new Date();
+  return Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+}
+let mealOffset = 0;
+function renderMeals() {
+  const ph = currentPhase();
+  const plan = MEAL_PLANS[(dayOfYear() + mealOffset) % MEAL_PLANS.length];
+  $("mealTitle").textContent = `오늘의 식단 — ${plan.name}`;
+  const tbody = $("mealBody");
+  tbody.innerHTML = "";
+  let kSum = 0, pSum = 0;
+  for (const [slot, menu, k, p] of plan.meals) {
+    kSum += k; pSum += p;
+    const tr = document.createElement("tr");
+    const cells = [slot, menu, k.toLocaleString(), p + "g"];
+    cells.forEach((c, i) => {
+      const td = document.createElement("td");
+      if (i >= 2) td.className = "num";
+      if (i === 0) td.style.whiteSpace = "nowrap";
+      td.textContent = c;
+      tr.append(td);
+    });
+    tbody.append(tr);
+  }
+  $("mealTotal").textContent = `합계 약 ${kSum.toLocaleString()}kcal · 단백질 ${pSum}g` +
+    (ph.kcal > 2000 ? ` — 지금 단계 목표는 ${ph.kcal.toLocaleString()}kcal이므로 밥·탄수화물 양을 늘려서 맞추세요` : "");
+}
+$("mealCycle").addEventListener("click", () => { mealOffset++; renderMeals(); });
 
 function renderMeter(valId, meterId, val, target, unit, overIsBad) {
   const vEl = $(valId), mEl = $(meterId);
@@ -400,6 +514,8 @@ function renderChart() {
   const box = $("chartBox");
   box.querySelectorAll("svg").forEach(s => s.remove());
   chartState = null;
+  const GOAL_WEIGHT = currentPhase().goal;
+  $("chartTitle").textContent = `체중 추이 — 목표 ${GOAL_WEIGHT.toFixed(1)}kg`;
   const ws = weightSeries();
   $("chartEmpty").style.display = ws.length < 2 ? "" : "none";
   if (ws.length < 2) return;
@@ -623,6 +739,8 @@ function renderAll() {
   renderHeader();
   renderTiles();
   renderChart();
+  renderWorkout();
+  renderMeals();
   renderHistory();
   renderChecklist();
 }
