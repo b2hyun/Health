@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/health-slim-track-merge-8chzb5]
+    branches: [claude/body-composition-fitness-aixjcn]
   workflow_dispatch:
 
 permissions:
