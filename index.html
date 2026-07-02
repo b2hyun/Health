@@ -17,6 +17,7 @@
   --baseline:       #c3c2b7;
   --border:         rgba(11,11,11,0.10);
   --series-1:       #2a78d6;
+  --series-1-soft:  #86b6ef;
   --series-1-wash:  rgba(42,120,214,0.10);
   --good:           #0ca30c;
   --good-text:      #006300;
@@ -35,6 +36,7 @@
     --baseline:       #383835;
     --border:         rgba(255,255,255,0.10);
     --series-1:       #3987e5;
+    --series-1-soft:  #1c5cab;
     --series-1-wash:  rgba(57,135,229,0.12);
     --good-text:      #0ca30c;
     --meter-track:    #184f95;
@@ -103,6 +105,16 @@ header .phase b { color: var(--good-text); font-weight: 600; }
 .tooltip .tt-val { font-size: 15px; font-weight: 600; }
 .tooltip .tt-sub { color: var(--text-secondary); }
 .tt-key { display: inline-block; width: 12px; height: 0; border-top: 2px solid var(--series-1); vertical-align: middle; margin-right: 5px; }
+.tt-key.soft { border-top-color: var(--series-1-soft); }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.legend .lk { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--series-1); vertical-align: middle; margin-right: 5px; }
+.legend .lk.soft { border-top-color: var(--series-1-soft); }
+input.lift {
+  width: 76px; padding: 5px 7px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--page); color: var(--text-primary); font-family: inherit;
+  text-align: right;
+}
 
 /* form */
 form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -196,6 +208,7 @@ details table td, details table th { font-variant-numeric: normal; }
 <!-- 체중 차트 -->
 <div class="card">
   <h2 id="chartTitle">체중 추이</h2>
+  <div class="legend"><span><i class="lk"></i>7일 평균 (판정 기준)</span><span><i class="lk soft"></i>일별</span></div>
   <div class="chart-box" id="chartBox">
     <div class="chart-empty" id="chartEmpty">체중을 2일 이상 기록하면 그래프가 나타납니다</div>
     <div class="tooltip" id="tooltip"></div>
@@ -210,9 +223,10 @@ details table td, details table th { font-variant-numeric: normal; }
     <button class="ghost seg" id="modeHome">홈트</button>
   </div>
   <table>
-    <thead><tr><th>운동</th><th class="num">세트×횟수</th></tr></thead>
+    <thead><tr><th>운동</th><th class="num">세트×횟수</th><th class="num">기록</th></tr></thead>
     <tbody id="workoutBody"></tbody>
   </table>
+  <div class="note">기록 칸: 마지막 세트 기준 "kg×회" (예: 60×8). 회색으로 지난 기록이 보이면 그걸 넘는 게 오늘 목표.</div>
   <div class="note" id="workoutCardio"></div>
   <div class="note">강도: 마지막 세트는 1~2회 남기고 멈추기(RPE 8~9) · 매 세션 중량 기록 — 커팅 중엔 중량 "유지"가 곧 승리</div>
   <div class="note" id="progressionNote"></div>
@@ -226,12 +240,20 @@ details table td, details table th { font-variant-numeric: normal; }
 <!-- 오늘의 식단 추천 -->
 <div class="card">
   <h2 id="mealTitle">오늘의 식단</h2>
+  <div class="io-row" style="margin:0 0 10px">
+    <button class="ghost seg" id="mealBasic">기본 (집밥)</button>
+    <button class="ghost seg" id="mealWork">직장인</button>
+  </div>
   <table>
     <thead><tr><th>끼니</th><th>메뉴</th><th class="num">kcal</th><th class="num">단백질</th></tr></thead>
     <tbody id="mealBody"></tbody>
   </table>
   <div class="note" id="mealTotal"></div>
-  <div class="io-row"><button class="ghost" id="mealCycle">다른 조합 보기 ↻</button></div>
+  <div class="io-row">
+    <button class="ghost" id="mealCycle">다른 조합 보기 ↻</button>
+    <button class="ghost" id="mealLog">이대로 먹음 → 오늘 기록에 반영</button>
+  </div>
+  <div class="note" id="workTip" style="display:none">회식 생존법: 낮에 단백질을 몰아 채워두고, 고기·쌈 위주로 먹고 밥·면 마무리는 스킵. 술 상한 = 소주 반병 or 하이볼 2잔. 다음날 보상 굶기 금지 — 그게 폭식 트리거다. 평소 식단으로 그냥 복귀.</div>
   <div class="note">물 2L 이상 · 크레아틴 5g 매일 · 휴가 전까지 술 0잔 · 치팅밀은 주 1회 점심으로</div>
 </div>
 
@@ -311,6 +333,22 @@ details table td, details table th { font-variant-numeric: normal; }
   <div id="checklist"></div>
 </div>
 
+<!-- 설정 (배포용) -->
+<div class="card">
+  <h2>설정 — 내 목표로 바꾸기</h2>
+  <div class="note" style="margin:0 0 10px">비워두면 로드맵 단계의 기본값이 자동 적용된다. 다른 사람에게 공유했다면 여기서 자기 목표만 넣으면 됨.</div>
+  <div class="row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+    <label class="f">목표 체중 (kg) <input type="number" id="sGoal" step="0.5" min="40" max="150" inputmode="decimal"></label>
+    <label class="f">일일 칼로리 <input type="number" id="sKcal" step="50" min="1200" max="5000" inputmode="numeric"></label>
+    <label class="f">단백질 (g) <input type="number" id="sProtein" step="5" min="60" max="300" inputmode="numeric"></label>
+  </div>
+  <div class="io-row">
+    <button class="ghost" id="settingsSave">설정 저장</button>
+    <button class="ghost" id="settingsClear">기본값으로</button>
+    <button class="ghost" id="dataReset" style="color:var(--critical)">전체 데이터 초기화</button>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -374,10 +412,15 @@ const ROADMAP = [
 ];
 function currentPhase() {
   const t = todayStr();
-  return PHASES.find(p => t <= p.until) || PHASES[PHASES.length - 1];
+  const base = PHASES.find(p => t <= p.until) || PHASES[PHASES.length - 1];
+  const s = loadSettings(); // 사용자 오버라이드가 있으면 단계 기본값을 덮어씀 (배포용)
+  return { ...base, goal: s.goal ?? base.goal, kcal: s.kcal ?? base.kcal, protein: s.protein ?? base.protein };
 }
 const LS_ENTRIES = "bp_entries_v1";
 const LS_CHECKS = "bp_checks_v1";
+const LS_LIFTS = "bp_lifts_v1";
+const LS_SETTINGS = "bp_settings_v1";
+const LS_MEALMODE = "bp_mealmode_v1";
 
 const CHECK_ITEMS = [
   "헬스장 등록 + 인바디 측정 (시작점 기록)",
@@ -437,7 +480,27 @@ const WEEK_PLAN = [
       ["레그 레이즈 (바닥)", "3×15"], ["덤벨 크런치 (7kg)", "3×15"], ["플랭크", "3×60초"] ] }
 ];
 
-// 식단 템플릿 3종 — 미니컷 기준 약 1,800kcal / 단백질 165~175g
+// 식단 템플릿 — 미니컷 기준 약 1,700~1,900kcal / 단백질 150~170g
+// BASIC = 집밥 / WORK = 직장인 (구내식당·편의점·회식 대응)
+const MEAL_PLANS_WORK = [
+  { name: "D · 구내식당", meals: [
+    ["아침", "삶은계란 3개 + 무가당 그릭요거트 100g", 300, 28],
+    ["점심", "구내식당 백반 — 밥 ⅔공기, 고기·생선 반찬 위주, 국은 건더기만, 튀김 스킵", 700, 35],
+    ["간식", "프로틴 쉐이크 1스쿱 + 아몬드 10알", 250, 28],
+    ["저녁", "닭가슴살 220g + 고구마 100g + 샐러드", 520, 58],
+    ["취침 전", "무가당 그릭요거트 100g", 90, 15] ] },
+  { name: "E · 편의점 데이", meals: [
+    ["아침", "삶은계란 2개 + 프로틴 음료 1개", 250, 32],
+    ["점심", "닭가슴살 샐러드 + 주먹밥 1개 (소스는 반만)", 550, 40],
+    ["간식", "닭가슴살 소시지 2개", 200, 28],
+    ["저녁", "편의점 닭가슴살 도시락 (밥 절반) 또는 샌드위치+닭가슴살", 600, 45],
+    ["취침 전", "무가당 그릭요거트 or 스트링치즈", 90, 12] ] },
+  { name: "F · 회식 있는 날", meals: [
+    ["아침", "계란 3개 스크램블 + 오트밀 40g", 450, 32],
+    ["점심", "닭가슴살 200g + 현미밥 130g (단백질 선입금)", 560, 55],
+    ["회식 전", "프로틴 쉐이크 1스쿱 — 덜 고픈 상태로 참석", 120, 24],
+    ["회식", "고기+쌈채소 위주, 밥·면 마무리 스킵, 술은 소주 반병/하이볼 2잔 상한", 750, 40] ] }
+];
 const MEAL_PLANS = [
   { name: "A · 기본 클린", meals: [
     ["아침", "계란 3개 스크램블 + 오트밀 40g + 블루베리 한 줌", 450, 32],
@@ -490,13 +553,26 @@ function weightSeries() {
 }
 
 // ---------- header / tiles ----------
+function isoDate(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function calcStreak() {
+  let n = 0;
+  const d = new Date();
+  if (!entries[todayStr()]) d.setDate(d.getDate() - 1); // 오늘 아직 안 썼으면 어제부터 카운트
+  while (entries[isoDate(d)]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
 function renderHeader() {
   const ph = currentPhase();
   const days = Math.max(0, Math.ceil((new Date(ph.until) - new Date(todayStr())) / 86400000));
   $("phaseLine").innerHTML = "";
   const b = document.createElement("b");
   b.textContent = ph.name;
-  $("phaseLine").append(b, ` · 목표 ${ph.goal.toFixed(1)}kg · ${ph.until.slice(5).replace("-", "/")}까지 D-${days}`);
+  const streak = calcStreak();
+  $("phaseLine").append(b, ` · 목표 ${ph.goal.toFixed(1)}kg · ${ph.until.slice(5).replace("-", "/")}까지 D-${days}` +
+    (streak >= 2 ? ` · 🔥 ${streak}일 연속 기록` : ""));
 }
 
 function renderTiles() {
@@ -554,6 +630,22 @@ function renderTiles() {
   guard.style.display = "none";
 }
 
+// ---------- 운동 기록 (지난 세션 중량 추적 — 프로그레션의 근거) ----------
+function loadLifts() {
+  try { return JSON.parse(localStorage.getItem(LS_LIFTS)) || {}; }
+  catch { return {}; }
+}
+function saveLift(exName, val) {
+  const lifts = loadLifts();
+  const t = todayStr();
+  const arr = lifts[exName] || [];
+  const last = arr[arr.length - 1];
+  if (last && last.date === t) last.val = val;
+  else arr.push({ date: t, val });
+  lifts[exName] = arr.slice(-60);
+  localStorage.setItem(LS_LIFTS, JSON.stringify(lifts));
+}
+
 // ---------- 오늘의 운동 / 식단 ----------
 const LS_MODE = "bp_mode_v1";
 let workoutMode = localStorage.getItem(LS_MODE) === "home" ? "home" : "gym";
@@ -578,15 +670,30 @@ function renderWorkout() {
   if (items.length === 0) {
     const tr = document.createElement("tr");
     const td = document.createElement("td");
-    td.colSpan = 2; td.textContent = "웨이트 없음 — 회복에 집중";
+    td.colSpan = 3; td.textContent = "웨이트 없음 — 회복에 집중";
     td.style.color = "var(--text-muted)";
     tr.append(td); tbody.append(tr);
   }
+  const lifts = loadLifts();
+  const t = todayStr();
   for (const [ex, sets] of items) {
     const tr = document.createElement("tr");
     const td1 = document.createElement("td"); td1.textContent = ex;
     const td2 = document.createElement("td"); td2.className = "num"; td2.textContent = sets;
-    tr.append(td1, td2); tbody.append(tr);
+    const td3 = document.createElement("td"); td3.className = "num";
+    const input = document.createElement("input");
+    input.className = "lift"; input.type = "text"; input.maxLength = 12;
+    const hist = lifts[ex] || [];
+    const last = hist[hist.length - 1];
+    if (last && last.date === t) input.value = last.val;
+    else if (last) input.placeholder = last.val;
+    else input.placeholder = "kg×회";
+    input.addEventListener("change", () => {
+      const v = input.value.trim();
+      if (v) saveLift(ex, v);
+    });
+    td3.append(input);
+    tr.append(td1, td2, td3); tbody.append(tr);
   }
   $("workoutCardio").textContent = "유산소: " + plan.cardio + " · 매일 1만~1.2만보";
   const lv = currentLevel();
@@ -608,10 +715,25 @@ function dayOfYear() {
   return Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
 }
 let mealOffset = 0;
+let mealMode = localStorage.getItem(LS_MEALMODE) === "work" ? "work" : "basic";
+function setMealMode(m) {
+  mealMode = m;
+  localStorage.setItem(LS_MEALMODE, m);
+  renderMeals();
+}
+$("mealBasic").addEventListener("click", () => setMealMode("basic"));
+$("mealWork").addEventListener("click", () => setMealMode("work"));
+
+let currentMealPlan = null;
 function renderMeals() {
   const ph = currentPhase();
-  const plan = MEAL_PLANS[(dayOfYear() + mealOffset) % MEAL_PLANS.length];
+  const plans = mealMode === "work" ? MEAL_PLANS_WORK : MEAL_PLANS;
+  const plan = plans[(dayOfYear() + mealOffset) % plans.length];
+  currentMealPlan = plan;
   $("mealTitle").textContent = `오늘의 식단 — ${plan.name}`;
+  $("mealBasic").classList.toggle("active", mealMode === "basic");
+  $("mealWork").classList.toggle("active", mealMode === "work");
+  $("workTip").style.display = mealMode === "work" ? "" : "none";
   const tbody = $("mealBody");
   tbody.innerHTML = "";
   let kSum = 0, pSum = 0;
@@ -632,6 +754,18 @@ function renderMeals() {
     (ph.kcal > 2000 ? ` — 지금 단계 목표는 ${ph.kcal.toLocaleString()}kcal이므로 밥·탄수화물 양을 늘려서 맞추세요` : "");
 }
 $("mealCycle").addEventListener("click", () => { mealOffset++; renderMeals(); });
+$("mealLog").addEventListener("click", () => {
+  if (!currentMealPlan) return;
+  const t = todayStr();
+  const kSum = currentMealPlan.meals.reduce((s, m) => s + m[2], 0);
+  const pSum = currentMealPlan.meals.reduce((s, m) => s + m[3], 0);
+  entries[t] = { ...(entries[t] || { workout: [], note: "" }), kcal: kSum, protein: pSum };
+  saveEntries(entries);
+  renderAll();
+  const btn = $("mealLog");
+  btn.textContent = "반영됨 ✓";
+  setTimeout(() => btn.textContent = "이대로 먹음 → 오늘 기록에 반영", 1400);
+});
 
 function renderMeter(valId, meterId, val, target, unit, overIsBad) {
   const vEl = $(valId), mEl = $(meterId);
@@ -700,19 +834,31 @@ function renderChart() {
   gl.textContent = "목표 " + GOAL_WEIGHT.toFixed(1);
   svg.append(gl);
 
-  const pts = ws.map(p => ({ px: x(new Date(p.date).getTime()), py: y(p.weight), ...p }));
+  // 7일 이동평균 — 일별 체중은 소음, 판정은 평균으로 (강조 색은 평균이 가져간다)
+  const maVals = ws.map(p => {
+    const tp = new Date(p.date).getTime();
+    const win = ws.filter(q => {
+      const tq = new Date(q.date).getTime();
+      return tq >= tp - 6 * 86400000 && tq <= tp;
+    });
+    return win.reduce((s, q) => s + q.weight, 0) / win.length;
+  });
+  const pts = ws.map((p, i) => ({ px: x(new Date(p.date).getTime()), py: y(p.weight), ma: maVals[i], pyMa: y(maVals[i]), ...p }));
 
-  // area wash + 2px line
+  // area wash + 일별 라인(soft) + 평균 라인(강조)
   const lineD = pts.map((p, i) => (i ? "L" : "M") + p.px + " " + p.py).join(" ");
+  const maD = pts.map((p, i) => (i ? "L" : "M") + p.px + " " + p.pyMa).join(" ");
   svg.append(svgEl("path", {
     d: lineD + ` L${pts[pts.length - 1].px} ${y(yMin)} L${pts[0].px} ${y(yMin)} Z`,
     fill: C("--series-1"), opacity: 0.1, stroke: "none"
   }));
-  svg.append(svgEl("path", { d: lineD, fill: "none", stroke: C("--series-1"), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+  svg.append(svgEl("path", { d: lineD, fill: "none", stroke: C("--series-1-soft"), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
 
-  // markers with 2px surface ring
+  // markers with 2px surface ring (일별)
   for (const p of pts)
-    svg.append(svgEl("circle", { cx: p.px, cy: p.py, r: 4, fill: C("--series-1"), stroke: C("--surface-1"), "stroke-width": 2 }));
+    svg.append(svgEl("circle", { cx: p.px, cy: p.py, r: 4, fill: C("--series-1-soft"), stroke: C("--surface-1"), "stroke-width": 2 }));
+
+  svg.append(svgEl("path", { d: maD, fill: "none", stroke: C("--series-1"), "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
 
   // direct label at line end (value only at endpoint)
   const last = pts[pts.length - 1];
@@ -742,9 +888,12 @@ function renderChart() {
     tt.innerHTML = "";
     const d1 = document.createElement("div"); d1.className = "tt-date"; d1.textContent = best.date;
     const d2 = document.createElement("div"); d2.className = "tt-val";
-    const key = document.createElement("i"); key.className = "tt-key";
-    d2.append(key, best.weight.toFixed(1) + " kg");
-    tt.append(d1, d2);
+    const keyMa = document.createElement("i"); keyMa.className = "tt-key";
+    d2.append(keyMa, "평균 " + best.ma.toFixed(1) + " kg");
+    const d2b = document.createElement("div"); d2b.className = "tt-sub";
+    const keyDay = document.createElement("i"); keyDay.className = "tt-key soft";
+    d2b.append(keyDay, "일별 " + best.weight.toFixed(1) + " kg");
+    tt.append(d1, d2, d2b);
     const e = entries[best.date];
     if (e && (e.kcal != null || e.protein != null || e.waist != null)) {
       const d3 = document.createElement("div"); d3.className = "tt-sub";
@@ -878,9 +1027,48 @@ function renderChecklist() {
   });
 }
 
+// ---------- 설정 (배포용 오버라이드) ----------
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(LS_SETTINGS)) || {}; }
+  catch { return {}; }
+}
+function renderSettings() {
+  const s = loadSettings();
+  $("sGoal").value = s.goal ?? "";
+  $("sKcal").value = s.kcal ?? "";
+  $("sProtein").value = s.protein ?? "";
+}
+$("settingsSave").addEventListener("click", () => {
+  const s = {};
+  const num = id => $(id).value === "" ? null : Number($(id).value);
+  const g = num("sGoal"), k = num("sKcal"), p = num("sProtein");
+  if (g != null && !isNaN(g)) s.goal = g;
+  if (k != null && !isNaN(k)) s.kcal = k;
+  if (p != null && !isNaN(p)) s.protein = p;
+  localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+  renderAll();
+  const btn = $("settingsSave");
+  btn.textContent = "저장됨 ✓";
+  setTimeout(() => btn.textContent = "설정 저장", 1200);
+});
+$("settingsClear").addEventListener("click", () => {
+  localStorage.removeItem(LS_SETTINGS);
+  renderAll();
+});
+$("dataReset").addEventListener("click", () => {
+  if (!confirm("모든 기록·설정을 지우고 처음부터 시작할까요? 되돌릴 수 없어요.")) return;
+  if (!confirm("정말로요? 내보내기로 백업했는지 확인하세요.")) return;
+  [LS_ENTRIES, LS_CHECKS, LS_LIFTS, LS_SETTINGS, LS_MEALMODE, LS_MODE].forEach(k => localStorage.removeItem(k));
+  location.reload();
+});
+
 // ---------- export / import ----------
 $("exportBtn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify({ entries, checks: loadChecks() }, null, 2)], { type: "application/json" });
+  const payload = {
+    entries, checks: loadChecks(), lifts: loadLifts(), settings: loadSettings(),
+    mealMode, workoutMode
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "bp-backup-" + todayStr() + ".json";
@@ -896,6 +1084,10 @@ $("importFile").addEventListener("change", ev => {
       const data = JSON.parse(txt);
       if (data.entries) { entries = data.entries; saveEntries(entries); }
       if (data.checks) localStorage.setItem(LS_CHECKS, JSON.stringify(data.checks));
+      if (data.lifts) localStorage.setItem(LS_LIFTS, JSON.stringify(data.lifts));
+      if (data.settings) localStorage.setItem(LS_SETTINGS, JSON.stringify(data.settings));
+      if (data.mealMode) { localStorage.setItem(LS_MEALMODE, data.mealMode); mealMode = data.mealMode; }
+      if (data.workoutMode) { localStorage.setItem(LS_MODE, data.workoutMode); workoutMode = data.workoutMode; }
       renderAll();
       alert("가져오기 완료");
     } catch { alert("파일을 읽을 수 없어요"); }
@@ -913,6 +1105,7 @@ function renderAll() {
   renderRoadmap();
   renderHistory();
   renderChecklist();
+  renderSettings();
 }
 $("fDate").value = todayStr();
 renderAll();
