@@ -204,6 +204,7 @@ details table td, details table th { font-variant-numeric: normal; }
     <tbody id="workoutBody"></tbody>
   </table>
   <div class="note" id="workoutCardio"></div>
+  <div class="note">강도: 마지막 세트는 1~2회 남기고 멈추기(RPE 8~9) · 매 세션 중량 기록 — 커팅 중엔 중량 "유지"가 곧 승리</div>
   <details>
     <summary>이번 주 전체 스케줄</summary>
     <div id="weekPlan"></div>
@@ -219,7 +220,7 @@ details table td, details table th { font-variant-numeric: normal; }
   </table>
   <div class="note" id="mealTotal"></div>
   <div class="io-row"><button class="ghost" id="mealCycle">다른 조합 보기 ↻</button></div>
-  <div class="note">물 2L 이상 · 휴가 전까지 술 0잔 · 치팅밀은 주 1회 점심으로</div>
+  <div class="note">물 2L 이상 · 크레아틴 5g 매일 · 휴가 전까지 술 0잔 · 치팅밀은 주 1회 점심으로</div>
 </div>
 
 <!-- 오늘 기록 -->
@@ -231,10 +232,13 @@ details table td, details table th { font-variant-numeric: normal; }
     </div>
     <div class="row">
       <label class="f">아침 공복 체중 (kg) <input type="number" id="fWeight" step="0.1" min="40" max="150" inputmode="decimal" placeholder="77.0"></label>
-      <label class="f">칼로리 (kcal) <input type="number" id="fKcal" step="10" min="0" max="8000" inputmode="numeric" placeholder="2050"></label>
+      <label class="f">허리둘레 (cm, 주 1회) <input type="number" id="fWaist" step="0.5" min="50" max="150" inputmode="decimal" placeholder="배꼽 높이"></label>
     </div>
     <div class="row">
-      <label class="f">단백질 (g) <input type="number" id="fProtein" step="1" min="0" max="400" inputmode="numeric" placeholder="160"></label>
+      <label class="f">칼로리 (kcal) <input type="number" id="fKcal" step="10" min="0" max="8000" inputmode="numeric" placeholder="1800"></label>
+      <label class="f">단백질 (g) <input type="number" id="fProtein" step="1" min="0" max="400" inputmode="numeric" placeholder="170"></label>
+    </div>
+    <div class="row full">
       <label class="f">메모 <input type="text" id="fNote" placeholder="컨디션, 치팅 등"></label>
     </div>
     <div class="f" style="font-size:12px;color:var(--text-muted)">오늘 한 운동</div>
@@ -291,36 +295,37 @@ const LS_CHECKS = "bp_checks_v1";
 
 const CHECK_ITEMS = [
   "헬스장 등록 + 인바디 측정 (시작점 기록)",
-  "눈바디 사진 촬영 (정면/측면 — 매주 같은 조건)",
-  "단백질 보충제 구비",
+  "눈바디 사진 + 허리둘레 측정 — 매주 같은 요일 아침 (체중보다 정직한 지표)",
+  "단백질 보충제 + 크레아틴 5g/일 시작 (첫 주 체중 +1kg은 수분이니 무시)",
+  "수면 7시간 사수 — 잠이 부족하면 빠지는 게 지방 대신 근육이 된다",
   "7월 한 달 술 0잔 유지",
-  "7/15 중간 점검: 체중 75.5kg 근처인지 확인 (아니면 -100kcal)",
+  "7/15 중간 점검: 체중 75.5kg 근처인지 확인 (아니면 -100kcal 또는 걷기 +2천보)",
   "7/29~31: 나트륨·밀가루 줄여서 붓기 빼기 (물은 충분히)",
   "8/1 여름휴가 — 유지 칼로리(2,400)로 전환, 즐기기",
   "8/10~: 린매스업 시작 (2,700kcal, 월 +0.5~1kg)",
   "(선택) 유방외과 초음파 검사 — 커팅 후에도 유두 아래 단단하면 필수"
 ];
 
-// 요일별 운동 추천 (0=일 ~ 6=토) — 미니컷: 주 6회 + 매일 1만보
+// 요일별 운동 추천 (0=일 ~ 6=토)
+// 미니컷: 웨이트 주 4회(상하체 2분할, 무겁게·짧게) + 매일 1만~1.2만보.
+// 큰 적자에서 웨이트는 칼로리 소모용이 아니라 "근육 유지 신호" — 적게, 세게.
 const WEEK_PLAN = [
-  { name: "일 — 완전 휴식", cardio: "가볍게 걷기 1만보 + 폼롤러 스트레칭 15분", items: [] },
-  { name: "월 — 상체 A (가슴·어깨)", cardio: "웨이트 후 경사 걷기 30~40분 (경사 8~10, 속도 5.5~6)", items: [
-    ["인클라인 벤치프레스", "4×8~10"], ["오버헤드 프레스", "4×8~10"], ["케이블 크로스오버 (하이→로우)", "3×12~15"],
-    ["사이드 레터럴 레이즈", "4×12~15"], ["페이스풀", "3×15"] ] },
-  { name: "화 — 하체 A + 코어", cardio: "웨이트 후 사이클 HIIT 15분 (30초 전력 / 90초 회복 ×7)", items: [
-    ["스쿼트", "4×8~10"], ["레그프레스", "3×10~12"], ["레그컬", "3×12"],
+  { name: "일 — 완전 휴식", cardio: "걷기 1만보 + 폼롤러 스트레칭 15분", items: [] },
+  { name: "월 — 상체 A (무겁게)", cardio: "웨이트 후 경사 걷기 20~30분 (경사 8~10, 속도 5.5~6)", items: [
+    ["벤치프레스", "4×6~8"], ["바벨 로우 (또는 체스트서포트 로우)", "4×6~8"], ["오버헤드 프레스", "3×8~10"],
+    ["랫풀다운 / 턱걸이", "3×8~10"], ["사이드 레터럴 레이즈", "3×12~15"] ] },
+  { name: "화 — 하체 A + 코어", cardio: "웨이트 후 경사 걷기 20~30분", items: [
+    ["스쿼트 (처음이면 레그프레스로 대체)", "4×6~8"], ["레그프레스", "3×10"], ["레그컬", "3×12"],
     ["행잉 레그레이즈", "3×12~15"], ["플랭크", "3×60초"] ] },
-  { name: "수 — 등·팔", cardio: "웨이트 후 경사 걷기 30~40분", items: [
-    ["턱걸이 / 랫풀다운", "4×8~12"], ["바벨 로우", "4×8~10"], ["시티드 케이블 로우", "3×10~12"],
-    ["이지바 컬", "3×10~12"], ["케이블 푸시다운", "3×10~12"] ] },
-  { name: "목 — 액티브 휴식 (유산소+코어)", cardio: "경사 걷기 40분", items: [
-    ["행잉 레그레이즈", "3×15"], ["케이블 크런치", "3×15"], ["사이드 플랭크", "좌우 3×40초"] ] },
-  { name: "금 — 상체 B (어깨·가슴 상부)", cardio: "웨이트 후 경사 걷기 30분", items: [
-    ["오버헤드 프레스", "4×6~8"], ["인클라인 덤벨프레스", "4×10"], ["사이드 레터럴 레이즈", "5×15"],
-    ["리어델트 플라이", "3×15"], ["딥스", "3×최대"] ] },
-  { name: "토 — 하체 B + 코어", cardio: "웨이트 후 사이클 HIIT 15분", items: [
-    ["루마니안 데드리프트", "4×8~10"], ["런지", "3×12 (다리당)"], ["레그 익스텐션", "3×15"],
-    ["카프 레이즈", "4×15"], ["케이블 크런치", "3×15"] ] }
+  { name: "수 — 회복 걷기 (웨이트 없음)", cardio: "경사 걷기 45~60분 또는 총 1.2만보", items: [] },
+  { name: "목 — 상체 B (어깨·가슴 상부)", cardio: "웨이트 후 경사 걷기 20~30분", items: [
+    ["인클라인 덤벨프레스", "4×8~10"], ["턱걸이 / 랫풀다운", "4×8~10"], ["시티드 케이블 로우", "3×10~12"],
+    ["사이드 레터럴 레이즈", "4×12~15"], ["페이스풀", "3×15"] ] },
+  { name: "금 — 하체 B (힌지) + 코어", cardio: "웨이트 후 경사 걷기 20~30분", items: [
+    ["루마니안 데드리프트", "4×6~8"], ["런지", "3×10 (다리당)"], ["레그 익스텐션", "3×12~15"],
+    ["케이블 크런치", "3×15"], ["사이드 플랭크", "좌우 3×40초"] ] },
+  { name: "토 — 긴 유산소 + 코어", cardio: "경사 걷기 60분 (또는 등산·수영 등 즐기는 활동)", items: [
+    ["행잉 레그레이즈", "3×15"], ["케이블 크런치", "3×15"], ["플랭크", "3×60초"] ] }
 ];
 
 // 식단 템플릿 3종 — 미니컷 기준 약 1,800kcal / 단백질 165~175g
@@ -446,7 +451,7 @@ function renderWorkout() {
     const td2 = document.createElement("td"); td2.className = "num"; td2.textContent = sets;
     tr.append(td1, td2); tbody.append(tr);
   }
-  $("workoutCardio").textContent = "유산소: " + plan.cardio + " · 매일 1만보";
+  $("workoutCardio").textContent = "유산소: " + plan.cardio + " · 매일 1만~1.2만보";
   const wp = $("weekPlan");
   wp.innerHTML = "";
   const order = [1, 2, 3, 4, 5, 6, 0];
@@ -602,11 +607,13 @@ function renderChart() {
     d2.append(key, best.weight.toFixed(1) + " kg");
     tt.append(d1, d2);
     const e = entries[best.date];
-    if (e && (e.kcal != null || e.protein != null)) {
+    if (e && (e.kcal != null || e.protein != null || e.waist != null)) {
       const d3 = document.createElement("div"); d3.className = "tt-sub";
-      d3.textContent = (e.kcal != null ? e.kcal.toLocaleString() + "kcal" : "") +
-                       (e.kcal != null && e.protein != null ? " · " : "") +
-                       (e.protein != null ? "단백질 " + e.protein + "g" : "");
+      d3.textContent = [
+        e.kcal != null ? e.kcal.toLocaleString() + "kcal" : null,
+        e.protein != null ? "단백질 " + e.protein + "g" : null,
+        e.waist != null ? "허리 " + e.waist + "cm" : null
+      ].filter(Boolean).join(" · ");
       tt.append(d3);
     }
     tt.style.display = "block";
@@ -661,6 +668,7 @@ function loadIntoForm(d) {
   const e = entries[d] || {};
   $("fDate").value = d;
   $("fWeight").value = e.weight ?? "";
+  $("fWaist").value = e.waist ?? "";
   $("fKcal").value = e.kcal ?? "";
   $("fProtein").value = e.protein ?? "";
   $("fNote").value = e.note ?? "";
@@ -676,6 +684,7 @@ $("entryForm").addEventListener("submit", ev => {
   const workout = [...document.querySelectorAll("#workoutRow input:checked")].map(cb => cb.value);
   entries[d] = {
     weight: num("fWeight"),
+    waist: num("fWaist"),
     kcal: num("fKcal"),
     protein: num("fProtein"),
     workout,
