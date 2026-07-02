@@ -212,6 +212,7 @@ details table td, details table th { font-variant-numeric: normal; }
   </table>
   <div class="note" id="workoutCardio"></div>
   <div class="note">강도: 마지막 세트는 1~2회 남기고 멈추기(RPE 8~9) · 매 세션 중량 기록 — 커팅 중엔 중량 "유지"가 곧 승리</div>
+  <div class="note" id="progressionNote"></div>
   <div class="note" id="homeNote" style="display:none">홈트 무게가 가벼워지면: 3초 천천히 내리기 · 15~20회까지 · 세트 간 휴식 60초. 구매 우선순위: ① 문틀 턱걸이바 ② 20kg+ 조절식 덤벨 ③ 바벨 원판 추가</div>
   <details>
     <summary>이번 주 전체 스케줄</summary>
@@ -229,6 +230,30 @@ details table td, details table th { font-variant-numeric: normal; }
   <div class="note" id="mealTotal"></div>
   <div class="io-row"><button class="ghost" id="mealCycle">다른 조합 보기 ↻</button></div>
   <div class="note">물 2L 이상 · 크레아틴 5g 매일 · 휴가 전까지 술 0잔 · 치팅밀은 주 1회 점심으로</div>
+</div>
+
+<!-- 장기 로드맵 -->
+<div class="card">
+  <h2>장기 로드맵 2026 → 2030</h2>
+  <table>
+    <thead><tr><th>기간</th><th>단계</th><th class="num">체중</th></tr></thead>
+    <tbody id="roadmapBody"></tbody>
+  </table>
+  <details>
+    <summary>연도별 근력 목표 (5RM 기준, kg)</summary>
+    <table>
+      <thead><tr><th>연말</th><th class="num">벤치</th><th class="num">스쿼트</th><th class="num">데드</th><th class="num">OHP</th></tr></thead>
+      <tbody>
+        <tr><td>2026</td><td class="num">60</td><td class="num">80</td><td class="num">100</td><td class="num">40</td></tr>
+        <tr><td>2027</td><td class="num">80</td><td class="num">110</td><td class="num">140</td><td class="num">50</td></tr>
+        <tr><td>2028</td><td class="num">90</td><td class="num">125</td><td class="num">160</td><td class="num">57.5</td></tr>
+        <tr><td>2029</td><td class="num">100</td><td class="num">140</td><td class="num">180</td><td class="num">62.5</td></tr>
+        <tr><td>2030</td><td class="num">107.5</td><td class="num">150</td><td class="num">195</td><td class="num">67.5</td></tr>
+      </tbody>
+    </table>
+    <div class="note">자연 트레이닝 기준 상위권 페이스. 표보다 앞서가면 일정을 앞당기고, 뒤처지면 늦추면 된다 — 방향이 맞으면 속도는 문제가 아니다.</div>
+  </details>
+  <div class="note">벌크·커팅 사이클로 매년 순수 근육 +2~3kg 적립 → 2030년 82~83kg 벌크 / 78~79kg 유지(체지방 12~13%)의 완성형. 2027년부터 8주마다 1주 디로드 필수.</div>
 </div>
 
 <!-- 오늘 기록 -->
@@ -288,11 +313,54 @@ details table td, details table th { font-variant-numeric: normal; }
 <script>
 "use strict";
 
-// 날짜에 따라 자동 전환되는 단계 설정
+// 날짜에 따라 자동 전환되는 단계 설정 — 2030년까지의 벌크·커팅 사이클
+// 패턴: 9월~3월 벌크(월 +0.5~1kg) → 4~5월 커팅 → 여름 유지. 매년 순수 근육 +2~3kg씩 적립.
 const PHASES = [
   { name: "여름휴가 미니컷 🔥", until: "2026-08-01", goal: 74.0, startRef: 77.0, kcal: 1800, protein: 170, cut: true },
   { name: "여름휴가 🏖️ (유지)",  until: "2026-08-09", goal: 74.0, startRef: 74.0, kcal: 2400, protein: 150, cut: true },
-  { name: "린매스업 💪",         until: "2027-04-30", goal: 80.0, startRef: 74.0, kcal: 2700, protein: 170, cut: false }
+  { name: "린매스업 ① 💪",      until: "2027-02-28", goal: 80.0, startRef: 74.0, kcal: 2700, protein: 170, cut: false },
+  { name: "바프 커팅 🎯",        until: "2027-05-10", goal: 74.0, startRef: 80.0, kcal: 1900, protein: 175, cut: true },
+  { name: "리버스 다이어트",     until: "2027-06-15", goal: 75.0, startRef: 74.0, kcal: 2300, protein: 160, cut: false },
+  { name: "여름 유지 🏖️",        until: "2027-08-31", goal: 75.0, startRef: 75.0, kcal: 2500, protein: 160, cut: false },
+  { name: "린매스업 ② 💪",      until: "2028-03-31", goal: 81.0, startRef: 75.0, kcal: 2800, protein: 170, cut: false },
+  { name: "여름 커팅 🔥",        until: "2028-05-31", goal: 76.0, startRef: 81.0, kcal: 2000, protein: 175, cut: true },
+  { name: "여름 유지 🏖️",        until: "2028-08-31", goal: 76.0, startRef: 76.0, kcal: 2500, protein: 160, cut: false },
+  { name: "린매스업 ③ 💪",      until: "2029-03-31", goal: 82.0, startRef: 76.0, kcal: 2800, protein: 175, cut: false },
+  { name: "여름 커팅 🔥",        until: "2029-05-31", goal: 77.0, startRef: 82.0, kcal: 2050, protein: 175, cut: true },
+  { name: "여름 유지 🏖️",        until: "2029-08-31", goal: 77.0, startRef: 77.0, kcal: 2550, protein: 165, cut: false },
+  { name: "린매스업 ④ 💪",      until: "2030-03-31", goal: 83.0, startRef: 77.0, kcal: 2850, protein: 175, cut: false },
+  { name: "여름 커팅 🔥",        until: "2030-05-31", goal: 78.0, startRef: 83.0, kcal: 2100, protein: 175, cut: true },
+  { name: "완성 유지 모드 👑",   until: "2030-12-31", goal: 79.0, startRef: 78.0, kcal: 2600, protein: 165, cut: false }
+];
+
+// 연차별 증량(프로그레션) 규칙 — 강도는 레벨이 올라갈수록 "더 자주"가 아니라 "더 정교하게"
+const LEVELS = [
+  { until: "2026-12-31", name: "1년차 · 초급", rule: "더블 프로그레션 — 모든 세트가 목표 횟수 상단에 닿으면 다음 세션에 상체 +2.5kg, 하체 +5kg. 홈트 덤벨은 상단 도달 시 다음 무게로." },
+  { until: "2027-12-31", name: "2년차 · 초→중급", rule: "더블 프로그레션 유지, 증량 단위는 일괄 +2.5kg. 2세션 연속 정체하면 같은 무게로 세트당 1회씩 늘린 뒤 재도전. 8주마다 1주 디로드(중량 60%·세트 절반)." },
+  { until: "2028-12-31", name: "3년차 · 중급", rule: "월=무겁게(5~8회) / 목=볼륨(10~15회)으로 상체 분리, 하체도 동일. 증량은 주 단위가 아니라 월 단위 +2.5kg. 디로드 8주마다 유지." },
+  { until: "2030-12-31", name: "4~5년차 · 중상급", rule: "블록 주기화 — 4주 볼륨(10~15회) → 2주 강도(4~6회) → 1주 디로드 반복. 분기마다 5RM 측정으로 진행을 확인하고 마일스톤 표와 비교." }
+];
+function currentLevel() {
+  const t = todayStr();
+  return LEVELS.find(l => t <= l.until) || LEVELS[LEVELS.length - 1];
+}
+
+// 장기 로드맵 표시용 (마지막 항목 = 기간 종료일)
+const ROADMAP = [
+  ["2026.7",        "여름휴가 미니컷 🔥",            "77→74", "2026-08-01"],
+  ["2026.8",        "휴가 + 리버스",                 "74",    "2026-08-31"],
+  ["2026.9~27.2",   "린매스업 ①",                   "74→80", "2027-02-28"],
+  ["2027.3~5",      "바프 커팅 🎯 촬영·여유증 판별", "80→74", "2027-05-10"],
+  ["2027.5~8",      "리버스 → 여름 유지",            "74~75", "2027-08-31"],
+  ["2027.9~28.3",   "린매스업 ②",                   "75→81", "2028-03-31"],
+  ["2028.4~5",      "여름 커팅",                     "81→76", "2028-05-31"],
+  ["2028.6~8",      "여름 유지",                     "76",    "2028-08-31"],
+  ["2028.9~29.3",   "린매스업 ③",                   "76→82", "2029-03-31"],
+  ["2029.4~5",      "여름 커팅",                     "82→77", "2029-05-31"],
+  ["2029.6~8",      "여름 유지",                     "77",    "2029-08-31"],
+  ["2029.9~30.3",   "린매스업 ④",                   "77→83", "2030-03-31"],
+  ["2030.4~5",      "여름 커팅",                     "83→78", "2030-05-31"],
+  ["2030.6~",       "완성 — 유지 모드 👑",           "78~79", "2030-12-31"]
 ];
 function currentPhase() {
   const t = todayStr();
@@ -495,6 +563,8 @@ function renderWorkout() {
     tr.append(td1, td2); tbody.append(tr);
   }
   $("workoutCardio").textContent = "유산소: " + plan.cardio + " · 매일 1만~1.2만보";
+  const lv = currentLevel();
+  $("progressionNote").textContent = `증량 규칙 [${lv.name}] — ${lv.rule}`;
   const wp = $("weekPlan");
   wp.innerHTML = "";
   const order = [1, 2, 3, 4, 5, 6, 0];
@@ -670,6 +740,27 @@ function renderChart() {
   hit.addEventListener("pointerleave", () => { tt.style.display = "none"; cross.setAttribute("visibility", "hidden"); });
 }
 
+// ---------- 장기 로드맵 ----------
+function renderRoadmap() {
+  const tbody = $("roadmapBody");
+  tbody.innerHTML = "";
+  const t = todayStr();
+  const currentIdx = ROADMAP.findIndex(r => t <= r[3]);
+  ROADMAP.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    const cells = [r[0], r[1] + (i === currentIdx ? "  ← 지금" : ""), r[2]];
+    cells.forEach((c, j) => {
+      const td = document.createElement("td");
+      if (j === 2) td.className = "num";
+      td.textContent = c;
+      tr.append(td);
+    });
+    if (i === currentIdx) tr.style.fontWeight = "600";
+    else if (r[3] < t) tr.style.color = "var(--text-muted)";
+    tbody.append(tr);
+  });
+}
+
 // ---------- history table ----------
 function renderHistory() {
   const tbody = $("historyBody");
@@ -793,6 +884,7 @@ function renderAll() {
   renderChart();
   renderWorkout();
   renderMeals();
+  renderRoadmap();
   renderHistory();
   renderChecklist();
 }
