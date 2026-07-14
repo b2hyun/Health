@@ -227,6 +227,19 @@
       <div id="planProfile"></div>
     </div>
     <div class="card">
+      <h2>목표 직접 설정</h2>
+      <div class="sub" style="margin-bottom:.6rem">자동 계산값 대신 내 목표를 직접 쓸 수 있어요. 비워둔 항목은 그대로 유지됩니다.</div>
+      <div class="row">
+        <div class="grow"><label style="margin-top:0">일일 칼로리</label><input id="tKcal" type="number" inputmode="numeric" placeholder="kcal"></div>
+        <div class="grow"><label style="margin-top:0">단백질 g</label><input id="tPro" type="number" inputmode="numeric" placeholder="g"></div>
+        <div class="grow"><label style="margin-top:0">목표 체중 kg</label><input id="tGoalW" type="number" inputmode="decimal" step="0.1" placeholder="kg"></div>
+      </div>
+      <div class="row" style="margin-top:.7rem">
+        <button class="btn sm grow" id="tSave">저장</button>
+        <button class="btn sm gray grow" id="tAuto">자동 계산으로 되돌리기</button>
+      </div>
+    </div>
+    <div class="card">
       <h2>주간 분할</h2>
       <div id="weekPlan"></div>
     </div>
@@ -449,7 +462,7 @@ $('obNext').addEventListener('click',()=>{
     if(!ob.data.goalW){toast('목표 체중을 입력해 주세요');return;}
   }
   if(ob.step<2){ob.step++;renderOb();return;}
-  const p={...ob.data};Object.assign(p,calcTargets(p));
+  const p={...ob.data};Object.assign(p,calcTargets(p));p.custom=false;
   S.profile=p;S.routine=buildRoutine(p);S.workIdx=0;
   if(!S.weights.some(w=>w.d===todayStr))S.weights.push({d:todayStr,v:p.weight});
   if(p.waist&&!S.waists.some(w=>w.d===todayStr))S.waists.push({d:todayStr,v:p.waist});
@@ -859,7 +872,7 @@ function renderPlan(){
   $('planProfile').innerHTML=`
     <div class="kv"><span class="muted">프로필</span><b>${P.name||'-'} · ${P.sex} ${P.age}세 · ${P.height}cm</b></div>
     <div class="kv"><span class="muted">현재 → 목표</span><b class="mono">${P.weight}kg → ${P.goalW}kg (BMI ${bmi})</b></div>
-    <div class="kv"><span class="muted">목표 모드</span><b>${GOALS[P.goal].ko}</b></div>
+    <div class="kv"><span class="muted">목표 모드</span><b>${GOALS[P.goal].ko}${P.custom?' · <span style="color:var(--acc)">직접 설정</span>':''}</b></div>
     <div class="kv"><span class="muted">일일 칼로리</span><b class="mono">${P.kcal.toLocaleString()} kcal</b></div>
     <div class="kv"><span class="muted">탄 / 단 / 지</span><b class="mono">${P.carb} / ${P.pro} / ${P.fat} g</b></div>
     <div class="kv"><span class="muted">기대 페이스</span><b class="mono">주 ${GOALS[P.goal].pace>0?'+':''}${GOALS[P.goal].pace}kg</b></div>`;
@@ -869,6 +882,29 @@ function renderPlan(){
     <div class="plan-li ${i===curIdx?'today':''}"><span class="idx">${i+1}</span>
     <span class="grow">${r.title}</span><span class="muted" style="font-size:.76rem">${r.exercises.length}종목</span></div>`).join('');
 }
+/* 목표 직접 설정 — 자동 계산 오버라이드 */
+$('tSave').addEventListener('click',()=>{
+  const P=S.profile;
+  const kcal=+$('tKcal').value,pro=+$('tPro').value,goalW=+$('tGoalW').value;
+  if(!kcal&&!pro&&!goalW){toast('바꿀 값을 입력해 주세요');return;}
+  if(kcal&&(kcal<800||kcal>6000)){toast('칼로리는 800~6000 사이로 입력해 주세요');return;}
+  if(pro&&(pro<30||pro>400)){toast('단백질은 30~400g 사이로 입력해 주세요');return;}
+  if(goalW&&(goalW<20||goalW>300)){toast('목표 체중을 확인해 주세요');return;}
+  if(kcal)P.kcal=Math.round(kcal);
+  if(pro)P.pro=Math.round(pro);
+  if(goalW)P.goalW=goalW;
+  // 칼로리·단백질이 바뀌면 지방(하한선 유지)·탄수 재배분
+  P.fat=Math.max(Math.round(P.weight*0.7),Math.round(P.kcal*0.25/9));
+  P.carb=Math.max(0,Math.round((P.kcal-P.pro*4-P.fat*9)/4));
+  P.custom=true;
+  $('tKcal').value='';$('tPro').value='';$('tGoalW').value='';
+  save();toast('목표를 저장했어요 ✓');renderAll();
+});
+$('tAuto').addEventListener('click',()=>{
+  const P=S.profile;
+  Object.assign(P,calcTargets(P));P.custom=false;
+  save();toast('자동 계산값으로 되돌렸어요');renderAll();
+});
 $('reOnboard').addEventListener('click',openOnboard);
 $('resetAll').addEventListener('click',()=>{
   if(confirm('모든 기록·설정을 지우고 처음부터 시작할까요? 되돌릴 수 없어요.')){

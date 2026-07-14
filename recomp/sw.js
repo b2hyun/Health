@@ -1,5 +1,5 @@
 // 리컴프·트랙 오프라인 캐시
-const CACHE = 'recomp-cache-v1';
+const CACHE = 'recomp-cache-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-180.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
