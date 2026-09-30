@@ -191,13 +191,27 @@ var MEALPLANS=[
   {t:"점심",d:"닭가슴살 200 + 현미밥 130 (단백질 선입금)",p:55,c:560,f:10,b:70},
   {t:"회식 전",d:"프로틴 1스쿱 — 덜 고픈 상태로 참석",p:24,c:120,f:2,b:5},
   {t:"회식",d:"고기+쌈 위주, 밥·면 마무리 스킵, 술은 소주 반병/하이볼 2잔 상한",p:40,c:750,f:45,b:30}]},
- {id:"F",name:"6주 컷",meals:[
+ {id:"F",name:"컷 A 기본",meals:[
   {t:"아침",d:"오트밀 40g + 저지방우유 200 + 프로틴 1스쿱 + 바나나 ½",p:36,c:400,f:7,b:50},
   {t:"점심",d:"백반 — 밥 2/3 + 단백질 반찬 위주 + 국물 적게",p:35,c:650,f:20,b:80},
   {t:"운동 전",d:"고구마 1개 + 닭가슴살 100g",p:25,c:310,f:2,b:48},
   {t:"저녁",d:"소고기 우둔 200g + 밥 2/3 + 쌈·김치",p:51,c:550,f:13,b:57},
-  {t:"자기 전",d:"그릭요거트 100g (단백질 모자랄 때)",p:9,c:100,f:5,b:5}]}
+  {t:"자기 전",d:"그릭요거트 100g (단백질 모자랄 때)",p:9,c:100,f:5,b:5}]},
+ {id:"G",name:"컷 B 도시락",meals:[
+  {t:"아침",d:"계란 2 + 통밀빵 1장 + 그릭요거트 150g + 바나나 1",p:31,c:485,f:19,b:48},
+  {t:"점심",d:"도시락 — 닭가슴살 150g + 현미밥 150g + 고구마 ½ + 나물",p:42,c:525,f:5,b:77},
+  {t:"운동 전",d:"프로틴 1스쿱(물) + 바나나 1",p:25,c:215,f:2,b:27},
+  {t:"저녁",d:"돼지 안심 수육 200g + 밥 2/3 + 김치·쌈",p:52,c:510,f:7,b:57},
+  {t:"틈틈이",d:"저지방우유 200ml + 아몬드 10알",p:9,c:155,f:8,b:12}]},
+ {id:"H",name:"컷 C 편의점",meals:[
+  {t:"아침",d:"구운란 2 + 단백질 음료 1병(20g) + 바나나 1",p:34,c:365,f:12,b:32},
+  {t:"점심",d:"포케(단백질 추가·밥 적게) 또는 쌀국수(고기 추가)",p:35,c:550,f:20,b:55},
+  {t:"운동 전",d:"단백질 음료 1병 + 삼각김밥 1",p:25,c:320,f:5,b:45},
+  {t:"저녁",d:"닭가슴살 200g + 밥 1공기 + 샐러드(드레싱 따로)",p:53,c:565,f:4,b:77},
+  {t:"자기 전",d:"그릭요거트 100g",p:9,c:100,f:5,b:5}]}
 ];
+/* 6주 커팅 식단 로테이션: 월 A · 화 B · 수 C · 목 A · 금 B (주말은 직접 고른 플랜) */
+var C6ROT={1:"F",2:"G",3:"H",4:"F",5:"G"};
 var WORK_TIP="회식 생존법: 낮에 단백질을 몰아 채워두고, 고기·쌈 위주로 먹고 밥·면 마무리는 스킵. 다음날 보상 굶기 금지 — 그게 폭식 트리거다. 평소 식단으로 그냥 복귀.";
 
 /* ── 6주 커팅 프로그램 (2026-09 인바디 기준 · 평일 헬스장 5회 50분 + 주말 집) ──
@@ -334,7 +348,7 @@ function c6Card(){var c=state.c6||{},ci=c6Info(TODAY),W=ci.W;
  var inp=function(id,ph,val){return '<input id="'+id+'" inputmode="decimal" placeholder="'+ph+'" value="'+(val!=null?val:'')+'" style="width:100%;background:'+SURF2+';border:1px solid '+LINE+';border-radius:9px;color:'+TX+';padding:10px;font-size:14px;text-align:center">';};
  var lbl=function(t){return '<div style="font-size:11px;color:'+MUT+';margin-bottom:5px">'+t+'</div>';};
  var dietBody='<div style="font-size:13px;line-height:1.5">하루 <b>'+K.toLocaleString()+'kcal</b> · 단백질 <b>'+P+'g</b> · 지방 ~'+fatT+'g · 탄수 ~'+carbT+'g</div>'+
-  '<div style="font-size:11px;color:'+MUT+';margin:6px 0 10px;line-height:1.5">추천 식단은 연료 탭 <b style="color:'+TX+'">F · 6주 컷</b>. 조정은 진척 탭 주간 리포트 기준 — 주 평균 −0.3~−0.9kg이면 유지 · 정체면 −150kcal(밥 ½공기) 또는 걸음 +2,000 · −1kg 넘게 빠지면 +150kcal.</div>'+
+  '<div style="font-size:11px;color:'+MUT+';margin:6px 0 10px;line-height:1.5">추천 식단은 연료 탭에서 요일별로 자동 — 월 <b style="color:'+TX+'">F 기본</b> · 화 <b style="color:'+TX+'">G 도시락</b> · 수 <b style="color:'+TX+'">H 편의점</b> · 목 F · 금 G, 주말은 골라서. 회식 날은 D. 조정은 진척 탭 주간 리포트 기준 — 주 평균 −0.3~−0.9kg이면 유지 · 정체면 −150kcal(밥 ½공기) 또는 걸음 +2,000 · −1kg 넘게 빠지면 +150kcal.</div>'+
   '<div style="display:flex;gap:8px;margin-bottom:8px"><div style="flex:1">'+lbl("칼로리")+inp("c6K",C6.kcal,c.kcal)+'</div><div style="flex:1">'+lbl("단백질 g")+inp("c6P",C6.protein,c.protein)+'</div><div style="flex:1">'+lbl("목표 체중")+inp("c6G",C6.goal.toFixed(1),c.goal)+'</div></div>'+
   lbl("시작일 (그 주 월요일로 맞춰져요)")+'<input id="c6S" type="date" value="'+ci.start+'" style="width:100%;background:'+SURF2+';border:1px solid '+LINE+';border-radius:9px;color:'+TX+';padding:9px 10px;font-size:14px;margin-bottom:8px">'+
   '<div style="display:flex;gap:8px"><button onclick="c6Save()" style="flex:1;background:'+ACC+';color:#1a1206;font-weight:700;border-radius:9px;padding:10px 0;font-size:13px">저장</button><button onclick="c6Reset()" style="flex:1;background:'+SURF2+';border:1px solid '+LINE+';color:'+TX+';border-radius:9px;padding:10px 0;font-size:13px">기본값</button></div>';
@@ -868,7 +882,7 @@ function idbGet(k,cb){idbOpen(function(db){if(!db){cb(null);return;}try{var rq=d
 function savePhotos(cb){idbSet("photos",state.photos||[],cb);}
 var state={mode:"home",workout:{},diet:{},metrics:[],tab:"today",plan:"A",photos:[],lastBackup:null,checks:{},settings:{},myfoods:[],myplan:[],swap:null,daily:{},supps:["크레아틴 5g","종합비타민","오메가3"],deload:null,barcodes:{},c6:{on:true,start:C6.start}};
 var SAVE_FAILED=false;
-function save(){try{localStorage.setItem(LKEY,JSON.stringify({mode:state.mode,workout:state.workout,diet:state.diet,metrics:state.metrics,plan:state.plan,lastBackup:state.lastBackup,checks:state.checks,settings:state.settings,myfoods:state.myfoods,myplan:state.myplan,swap:state.swap,daily:state.daily,supps:state.supps,deload:state.deload,barcodes:state.barcodes,c6:state.c6}));SAVE_FAILED=false;return true;}catch(e){if(!SAVE_FAILED){SAVE_FAILED=true;try{alert("⚠️ 저장 공간이 가득 차 방금 기록이 저장되지 않았어요.\n진척 탭 → 내보내기로 백업한 뒤, 사진 기록에서 오래된 사진을 지워 공간을 확보하세요.");}catch(_e){}}return false;}}
+function save(){try{localStorage.setItem(LKEY,JSON.stringify({mode:state.mode,workout:state.workout,diet:state.diet,metrics:state.metrics,plan:state.plan,lastBackup:state.lastBackup,checks:state.checks,settings:state.settings,myfoods:state.myfoods,myplan:state.myplan,swap:state.swap,daily:state.daily,supps:state.supps,deload:state.deload,barcodes:state.barcodes,c6:state.c6,planDay:state.planDay}));SAVE_FAILED=false;return true;}catch(e){if(!SAVE_FAILED){SAVE_FAILED=true;try{alert("⚠️ 저장 공간이 가득 차 방금 기록이 저장되지 않았어요.\n진척 탭 → 내보내기로 백업한 뒤, 사진 기록에서 오래된 사진을 지워 공간을 확보하세요.");}catch(_e){}}return false;}}
 function migrateBP(entries){
  if(!entries)return;
  var have={};state.metrics.forEach(function(m){have[m.date]=true;});
@@ -1034,14 +1048,14 @@ window.setMode=function(m){state.mode=m;save();render();};
 window.tt=function(id){if(WDATE>TODAY){alert("미래 날짜는 미리 보기만 할 수 있어요.");return;}var dl=dayLog();dl[id]=dl[id]||{};dl[id].done=!dl[id].done;save();render();};
 window.setW=function(id,v){var dl=dayLog();dl[id]=dl[id]||{};dl[id].weight=v;save();};
 window.addFood=function(i){var x=FOODS[i];addItem(x.n,x.p,x.c,x.f,x.b);};
-window.setPlan=function(id){state.plan=id;save();render();};
+window.setPlan=function(id){state.plan=id;state.planDay={date:VDATE,id:id};save();render();};
 
 /* ── 식단 플랜 (기본 A~D + 사용자 저장 플랜 E) ── */
 function allPlans(){var out=MEALPLANS.slice();if(state.myplan&&state.myplan.length)out.push({id:"E",name:"내 플랜",meals:state.myplan});return out;}
 function planById(id){var all=allPlans();for(var i=0;i<all.length;i++){if(all[i].id===id)return all[i];}return all[0];}
 window.addPlanMeal=function(pid,i){var m=planById(pid).meals[i];if(!m)return;addItem(pid==="E"?m.t:pid+" "+m.t,m.p,m.c,m.f,m.b);};
 window.addDay=function(planId){var mp=planById(planId);mp.meals.forEach(function(m){var d=diet();var f=m.f||0,b=m.b||0;d.items.push({n:planId==="E"?m.t:planId+" "+m.t,p:m.p,c:m.c,f:f,b:b});d.p+=m.p;d.c+=m.c;d.f+=f;d.b+=b;});save();render();};
-window.saveMyPlan=function(){var d=diet();if(!d.items.length){alert("먼저 오늘 먹은 걸 기록하면 그 조합을 플랜으로 저장할 수 있어요.");return;}state.myplan=d.items.map(function(it){return {t:it.n,d:"",p:it.p,c:it.c,f:it.f||0,b:it.b||0};});state.plan="E";save();render();};
+window.saveMyPlan=function(){var d=diet();if(!d.items.length){alert("먼저 오늘 먹은 걸 기록하면 그 조합을 플랜으로 저장할 수 있어요.");return;}state.myplan=d.items.map(function(it){return {t:it.n,d:"",p:it.p,c:it.c,f:it.f||0,b:it.b||0};});state.plan="E";state.planDay={date:VDATE,id:"E"};save();render();};
 window.delMyPlan=function(){if(!confirm("내 플랜(E)을 삭제할까요?"))return;state.myplan=[];if(state.plan==="E")state.plan="A";save();render();};
 window.delItem=function(i){var d=diet();var it=d.items[i];if(!it)return;d.p-=it.p;d.c-=it.c;d.f-=(it.f||0);d.b-=(it.b||0);if(d.p<0)d.p=0;if(d.c<0)d.c=0;if(d.f<0)d.f=0;if(d.b<0)d.b=0;d.items.splice(i,1);save();render();};
 
@@ -1075,7 +1089,7 @@ window.addManual=function(){
 /* ── 자주 먹는 음식: 전체 기록에서 자동 집계 ── */
 function freqFoods(){var cnt={};
  Object.keys(state.diet).forEach(function(d){(state.diet[d].items||[]).forEach(function(it){
-  if(/^[A-DF] /.test(it.n)||it.n.indexOf("바프 앱 기록")===0)return;
+  if(/^[A-DF-H] /.test(it.n)||it.n.indexOf("바프 앱 기록")===0)return;
   var k=it.n+"\u0001"+it.p+"\u0001"+it.c+"\u0001"+(it.f||0)+"\u0001"+(it.b||0);cnt[k]=(cnt[k]||0)+1;});});
  return Object.keys(cnt).map(function(k){var a=k.split("\u0001");return {n:a[0],p:+a[1],c:+a[2],f:+a[3],b:+a[4],cnt:cnt[k]};})
   .sort(function(a,b){return b.cnt-a.cnt;}).slice(0,8);}
@@ -1521,7 +1535,11 @@ function viewFuel(){var dp=dietPhase(),PG=dp.protein,CG=dp.kcal,d=diet();
  var freq=FREQ_CACHE.length>=3?'<div class="row" style="justify-content:space-between;margin:14px 0 10px"><span style="font-size:13px;color:'+MUT+'">자주 먹는 음식 (기록에서 자동 집계)</span></div>'+
   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+FREQ_CACHE.map(function(f,i){return '<button onclick="addFreq('+i+')" class="card" style="padding:11px 12px;text-align:left;color:'+TX+'"><div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(f.n)+'</div><div class="mono" style="font-size:11px;color:'+ACC+';margin-top:3px">+'+f.p+'P · '+f.c+'kcal · '+f.cnt+'회</div></button>';}).join("")+'</div>':'';
  var plans=allPlans();
- var plan=state.plan||"A";var mp=planById(plan);plan=mp.id;
+ var plan=state.plan||"A";
+ /* 6주 컷 기간엔 요일별 로테이션을 기본으로 보여주고, 그날 직접 고르면 그걸 따른다 */
+ var rotId=c6Info(VDATE).active?C6ROT[dowOf(VDATE)]:null,picked=state.planDay&&state.planDay.date===VDATE;
+ if(rotId&&!picked)plan=rotId;
+ var mp=planById(plan);plan=mp.id;
  var tp=mp.meals.reduce(function(s,m){return s+m.p;},0),tc=mp.meals.reduce(function(s,m){return s+m.c;},0);
  var chips=plans.map(function(x){var on=x.id===plan;return '<button onclick="setPlan(\''+x.id+'\')" style="flex:1;border-radius:8px;padding:8px 0;font-size:12px;font-weight:600;background:'+(on?ACC:SURF2)+';color:'+(on?'#1a1206':MUT)+'">'+x.id+' · '+x.name+'</button>';}).join("");
  var meals=mp.meals.map(function(m,i){return '<button onclick="addPlanMeal(\''+plan+'\','+i+')" class="row" style="width:100%;justify-content:space-between;background:'+SURF2+';border:1px solid '+LINE+';border-radius:9px;padding:10px 12px;margin-bottom:6px;text-align:left;color:'+TX+'"><div style="min-width:0"><div style="font-size:13px;font-weight:500">'+esc(m.t)+'</div>'+(m.d?'<div style="font-size:11px;color:'+MUT+';margin-top:2px">'+esc(m.d)+'</div>':'')+'</div><div class="mono" style="font-size:12px;color:'+ACC+';white-space:nowrap;margin-left:8px">+'+m.p+'P</div></button>';}).join("");
